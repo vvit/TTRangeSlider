@@ -18,6 +18,8 @@ const float TEXT_HEIGHT = 14;
 @property (nonatomic, strong) CALayer *rightHandle;
 @property (nonatomic, assign) BOOL rightHandleSelected;
 
+@property (nonatomic, strong) CALayer *minLabelBG;
+@property (nonatomic, strong) CALayer *maxLabelBG;
 @property (nonatomic, strong) CATextLayer *minLabel;
 @property (nonatomic, strong) CATextLayer *maxLabel;
 
@@ -108,11 +110,18 @@ static const CGFloat kLabelsFontSize = 12.0f;
     self.leftHandle.frame = CGRectMake(0, 0, self.handleDiameter, self.handleDiameter);
     self.rightHandle.frame = CGRectMake(0, 0, self.handleDiameter, self.handleDiameter);
 
+    //draw the label's background
+    self.minLabelBG = [CALayer layer];
+    self.minLabelBG.cornerRadius = 2;
+    self.minLabelBG.backgroundColor = UIColor.whiteColor.CGColor;
+    self.minLabelBG.frame = CGRectMake(0, 0, 32, 20);
+    [self.layer addSublayer:self.minLabelBG];
+
     //draw the text labels
     self.minLabel = [[CATextLayer alloc] init];
     self.minLabel.alignmentMode = kCAAlignmentCenter;
     self.minLabel.fontSize = kLabelsFontSize;
-    self.minLabel.frame = CGRectMake(0, 0, 75, TEXT_HEIGHT);
+    self.minLabel.frame = CGRectMake(0, 1, self.minLabelBG.frame.size.width, self.minLabelBG.frame.size.height);
     self.minLabel.contentsScale = [UIScreen mainScreen].scale;
     self.minLabel.contentsScale = [UIScreen mainScreen].scale;
     if (self.minLabelColour == nil){
@@ -121,12 +130,18 @@ static const CGFloat kLabelsFontSize = 12.0f;
         self.minLabel.foregroundColor = self.minLabelColour.CGColor;
     }
     self.minLabelFont = [UIFont systemFontOfSize:kLabelsFontSize];
-    [self.layer addSublayer:self.minLabel];
+    [self.minLabelBG addSublayer:self.minLabel];
+
+    self.maxLabelBG = [CALayer layer];
+    self.maxLabelBG.cornerRadius = 2;
+    self.maxLabelBG.backgroundColor = UIColor.whiteColor.CGColor;
+    self.maxLabelBG.frame = CGRectMake(0, 0, 32, 20);
+    [self.layer addSublayer:self.maxLabelBG];
 
     self.maxLabel = [[CATextLayer alloc] init];
     self.maxLabel.alignmentMode = kCAAlignmentCenter;
     self.maxLabel.fontSize = kLabelsFontSize;
-    self.maxLabel.frame = CGRectMake(0, 0, 75, TEXT_HEIGHT);
+    self.maxLabel.frame = CGRectMake(0, 1, self.maxLabelBG.frame.size.width, self.maxLabelBG.frame.size.height);
     self.maxLabel.contentsScale = [UIScreen mainScreen].scale;
     if (self.maxLabelColour == nil){
         self.maxLabel.foregroundColor = self.tintColor.CGColor;
@@ -134,7 +149,7 @@ static const CGFloat kLabelsFontSize = 12.0f;
         self.maxLabel.foregroundColor = self.maxLabelColour.CGColor;
     }
     self.maxLabelFont = [UIFont systemFontOfSize:kLabelsFontSize];
-    [self.layer addSublayer:self.maxLabel];
+    [self.maxLabelBG addSublayer:self.maxLabel];
 
     // TODO Create a bundle that allows localization of default accessibility labels and hints
     if (!self.minLabelAccessibilityLabel || self.minLabelAccessibilityLabel.length == 0) {
@@ -307,31 +322,21 @@ static const CGFloat kLabelsFontSize = 12.0f;
 
     CGSize minLabelTextSize = self.minLabelTextSize;
     CGSize maxLabelTextSize = self.maxLabelTextSize;
-    
-    
-    self.minLabel.frame = CGRectMake(0, 0, minLabelTextSize.width, minLabelTextSize.height);
-    self.maxLabel.frame = CGRectMake(0, 0, maxLabelTextSize.width, maxLabelTextSize.height);
 
     float newLeftMostXInMaxLabel = newMaxLabelCenter.x - maxLabelTextSize.width/2;
     float newRightMostXInMinLabel = newMinLabelCenter.x + minLabelTextSize.width/2;
     float newSpacingBetweenTextLabels = newLeftMostXInMaxLabel - newRightMostXInMinLabel;
 
     if (self.disableRange == YES || newSpacingBetweenTextLabels > minSpacingBetweenLabels) {
-        self.minLabel.position = newMinLabelCenter;
-        self.maxLabel.position = newMaxLabelCenter;
+        self.minLabelBG.position = newMinLabelCenter;
+        self.maxLabelBG.position = newMaxLabelCenter;
     }
     else {
         float increaseAmount = minSpacingBetweenLabels - newSpacingBetweenTextLabels;
         newMinLabelCenter = CGPointMake(newMinLabelCenter.x - increaseAmount/2, newMinLabelCenter.y);
         newMaxLabelCenter = CGPointMake(newMaxLabelCenter.x + increaseAmount/2, newMaxLabelCenter.y);
-        self.minLabel.position = newMinLabelCenter;
-        self.maxLabel.position = newMaxLabelCenter;
-
-        //Update x if they are still in the original position
-        if (self.minLabel.position.x == self.maxLabel.position.x && self.leftHandle != nil) {
-            self.minLabel.position = CGPointMake(leftHandleCentre.x, self.minLabel.position.y);
-            self.maxLabel.position = CGPointMake(leftHandleCentre.x + self.minLabel.frame.size.width/2 + minSpacingBetweenLabels + self.maxLabel.frame.size.width/2, self.maxLabel.position.y);
-        }
+        self.minLabelBG.position = newMinLabelCenter;
+        self.maxLabelBG.position = newMaxLabelCenter;
     }
 }
 
