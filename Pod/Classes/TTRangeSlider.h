@@ -84,6 +84,11 @@ IB_DESIGNABLE
 @property (nonatomic, strong) IBInspectable UIFont *maxLabelFont;
 
 /**
+ * The suffix will appear in both labels.
+ */
+@property (nonatomic, strong) IBInspectable NSString *labelTextSuffix;
+
+/**
  * The label displayed in accessibility mode for minimum value handler
  */
 @property (nonatomic, strong) IBInspectable NSString *minLabelAccessibilityLabel;

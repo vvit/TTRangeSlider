@@ -78,6 +78,7 @@ static const CGFloat kLabelsFontSize = 12.0f;
     _barSidePadding = 16.0;
 
     _labelPosition = LabelPositionAbove;
+    _labelTextSuffix = @"";
 
     //draw the slider line
     self.sliderLine = [CALayer layer];
@@ -285,8 +286,8 @@ static const CGFloat kLabelsFontSize = 12.0f;
     NSNumberFormatter *formatter = (self.numberFormatterOverride != nil) ? self.numberFormatterOverride : self.decimalNumberFormatter;
     BOOL isLast = [NSNumber numberWithInt:round(self.selectedMaximum)] == [NSNumber numberWithInt:self.maxValue];
 
-    self.minLabel.string = [formatter stringFromNumber:@(self.selectedMinimum)];
-    self.maxLabel.string = [NSString stringWithFormat:@"%@%@", isLast ? @"+" : @"", [formatter stringFromNumber:@(self.selectedMaximum)]];
+    self.minLabel.string = [NSString stringWithFormat:@"%@%@", [formatter stringFromNumber:@(self.selectedMinimum)], _labelTextSuffix];
+    self.maxLabel.string = [NSString stringWithFormat:@"%@%@%@", isLast ? @"+" : @"", [formatter stringFromNumber:@(self.selectedMaximum)], _labelTextSuffix];
 
     self.minLabelTextSize = [self.minLabel.string sizeWithAttributes:@{NSFontAttributeName:self.minLabelFont}];
     self.maxLabelTextSize = [self.maxLabel.string sizeWithAttributes:@{NSFontAttributeName:self.maxLabelFont}];
