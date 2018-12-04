@@ -7,6 +7,8 @@
 
 const int HANDLE_TOUCH_AREA_EXPANSION = -30; //expand the touch area of the handle by this much (negative values increase size) so that you don't have to touch right on the handle to activate it.
 const float TEXT_HEIGHT = 14;
+const float LABEL_FRAME_GAP_X = 6;
+const float LABEL_FRAME_GAP_Y = 3;
 
 @interface TTRangeSlider ()
 
@@ -120,10 +122,7 @@ static const CGFloat kLabelsFontSize = 12.0f;
 
     //draw the text labels
     self.minLabel = [[CATextLayer alloc] init];
-    self.minLabel.alignmentMode = kCAAlignmentCenter;
     self.minLabel.fontSize = kLabelsFontSize;
-    self.minLabel.frame = CGRectMake(0, 1, self.minLabelBG.frame.size.width, self.minLabelBG.frame.size.height);
-    self.minLabel.contentsScale = [UIScreen mainScreen].scale;
     self.minLabel.contentsScale = [UIScreen mainScreen].scale;
     if (self.minLabelColour == nil){
         self.minLabel.foregroundColor = self.tintColor.CGColor;
@@ -140,9 +139,7 @@ static const CGFloat kLabelsFontSize = 12.0f;
     [self.layer addSublayer:self.maxLabelBG];
 
     self.maxLabel = [[CATextLayer alloc] init];
-    self.maxLabel.alignmentMode = kCAAlignmentCenter;
     self.maxLabel.fontSize = kLabelsFontSize;
-    self.maxLabel.frame = CGRectMake(0, 1, self.maxLabelBG.frame.size.width, self.maxLabelBG.frame.size.height);
     self.maxLabel.contentsScale = [UIScreen mainScreen].scale;
     if (self.maxLabelColour == nil){
         self.maxLabel.foregroundColor = self.tintColor.CGColor;
@@ -168,7 +165,8 @@ static const CGFloat kLabelsFontSize = 12.0f;
     if (!self.maxLabelAccessibilityHint || self.maxLabelAccessibilityHint.length == 0) {
       self.maxLabelAccessibilityHint = @"Maximum value in slider";
     }
-  
+
+    self.isDynamicLabelFrame = NO;
     [self refresh];
 }
 
@@ -322,8 +320,17 @@ static const CGFloat kLabelsFontSize = 12.0f;
     CGPoint rightHandleCentre = [self getCentreOfRect:self.rightHandle.frame];
     CGPoint newMaxLabelCenter = CGPointMake(rightHandleCentre.x, (self.rightHandle.frame.origin.y + (self.rightHandle.frame.size.height/2)) + ((self.labelPosition == LabelPositionAbove ? -1 : 1) * ((self.maxLabel.frame.size.height/2) + padding + (self.rightHandle.frame.size.height/2))));
 
-    CGSize minLabelTextSize = self.minLabelTextSize;
-    CGSize maxLabelTextSize = self.maxLabelTextSize;
+    CGSize minLabelTextSize = CGSizeMake(self.minLabelTextSize.width + LABEL_FRAME_GAP_X*2, self.minLabelTextSize.height + LABEL_FRAME_GAP_Y*2);
+    CGSize maxLabelTextSize = CGSizeMake(self.maxLabelTextSize.width + LABEL_FRAME_GAP_X*2, self.maxLabelTextSize.height + LABEL_FRAME_GAP_Y*2);
+    CGFloat controlWidth = self.frame.size.width;
+
+    // Fix out of bounds coordinates
+    if (newMinLabelCenter.x - minLabelTextSize.width/2 <= 0) {
+        newMinLabelCenter.x = minLabelTextSize.width/2;
+    }
+    if (newMaxLabelCenter.x + maxLabelTextSize.width/2 > controlWidth) {
+        newMaxLabelCenter.x = controlWidth - maxLabelTextSize.width/2;
+    }
 
     float newLeftMostXInMaxLabel = newMaxLabelCenter.x - maxLabelTextSize.width/2;
     float newRightMostXInMinLabel = newMinLabelCenter.x + minLabelTextSize.width/2;
@@ -332,6 +339,11 @@ static const CGFloat kLabelsFontSize = 12.0f;
     if (self.disableRange == YES || newSpacingBetweenTextLabels > minSpacingBetweenLabels) {
         self.minLabelBG.position = newMinLabelCenter;
         self.maxLabelBG.position = newMaxLabelCenter;
+
+        if (self.isDynamicLabelFrame == YES) {
+            self.minLabelBG.bounds = CGRectMake(0, 0, minLabelTextSize.width, minLabelTextSize.height);
+            self.maxLabelBG.bounds = CGRectMake(0, 0, maxLabelTextSize.width, maxLabelTextSize.height);
+        }
     }
     else {
         float increaseAmount = minSpacingBetweenLabels - newSpacingBetweenTextLabels;
@@ -697,6 +709,16 @@ static const CGFloat kLabelsFontSize = 12.0f;
 -(void)setBarSidePadding:(CGFloat)barSidePadding {
     _barSidePadding = barSidePadding;
     [self updateLabelPositions];
+}
+
+-(void)setIsDynamicLabelFrame:(BOOL)isDynamicLabelFrame {
+    self.minLabel.anchorPoint = isDynamicLabelFrame ? CGPointMake(0, 0) : CGPointMake(0.5, 0.5);
+    self.maxLabel.anchorPoint = isDynamicLabelFrame ? CGPointMake(0, 0) : CGPointMake(0.5, 0.5);
+    self.minLabel.alignmentMode = isDynamicLabelFrame ? kCAAlignmentLeft : kCAAlignmentCenter;
+    self.maxLabel.alignmentMode = isDynamicLabelFrame ? kCAAlignmentLeft : kCAAlignmentCenter;
+    self.minLabel.frame = isDynamicLabelFrame ? CGRectMake(LABEL_FRAME_GAP_X, LABEL_FRAME_GAP_Y, 100, 20) : CGRectMake(0, 1, self.minLabelBG.frame.size.width, self.minLabelBG.frame.size.height);
+    self.maxLabel.frame = isDynamicLabelFrame ? CGRectMake(LABEL_FRAME_GAP_X, LABEL_FRAME_GAP_Y, 100, 20) : CGRectMake(0, 1, self.maxLabelBG.frame.size.width, self.maxLabelBG.frame.size.height);
+    _isDynamicLabelFrame = isDynamicLabelFrame;
 }
 
 #pragma mark - UIAccessibility

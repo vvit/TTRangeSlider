@@ -118,6 +118,8 @@ IB_DESIGNABLE
 
 @property (nonatomic, assign) IBInspectable float maxDistance;
 
+@property (nonatomic, assign) IBInspectable BOOL isDynamicLabelFrame;
+
 /**
  * If true the control will snap to point at each step between minValue and maxValue
  */
